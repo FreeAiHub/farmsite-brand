@@ -1,0 +1,122 @@
+# 🌱 FarmSite: issue с меткой "lead" → сайт‑превью → Cloudflare Pages → комментарий + Telegram
+name: grow-site
+
+on:
+  issues:
+    types: [labeled]   # форма ставит метку lead при создании → срабатывает один раз
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Номер issue с лидом (перезапуск)"
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: grow-site-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: true
+
+jobs:
+  grow:
+    # Только лиды с меткой и только от владельца/команды — чтобы чужие issue не тратили API‑бюджет
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'lead' &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
+      GH_TOKEN: ${{ github.token }}
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      HAS_TG: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Лид из issue
+        run: |
+          gh issue view "$ISSUE_NUMBER" --json body -q .body > issue_body.md
+          node automation/parse-issue.mjs < issue_body.md > lead.json
+          cat lead.json
+
+      - name: Вырастить сайт
+        id: gen
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FARMSITE_MODEL: ${{ vars.FARMSITE_MODEL }}
+          FARMSITE_RESEARCH: ${{ vars.FARMSITE_RESEARCH || '1' }}
+        run: |
+          DIR=$(node automation/generate.mjs lead.json)
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "slug=$(basename "$DIR")" >> "$GITHUB_OUTPUT"
+          cat "$DIR/meta.json"
+
+      - name: Сохранить в репозиторий
+        env:
+          DIR: ${{ steps.gen.outputs.dir }}
+        run: |
+          git config user.name "farmsite-bot"
+          git config user.email "farmsite-bot@users.noreply.github.com"
+          git add "$DIR"
+          git commit -m "grow: $(basename "$DIR") (issue #$ISSUE_NUMBER)"
+          git pull --rebase && git push
+
+      - name: Деплой превью (Cloudflare Pages)
+        id: deploy
+        if: env.HAS_CF == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT: ${{ vars.CF_PAGES_PROJECT || 'farmsite-previews' }}
+          DIR: ${{ steps.gen.outputs.dir }}
+          SLUG: ${{ steps.gen.outputs.slug }}
+        run: |
+          npx --yes wrangler@4 pages project create "$CF_PROJECT" --production-branch main 2>/dev/null || true
+          npx --yes wrangler@4 pages deploy "$DIR" --project-name "$CF_PROJECT" --branch "$SLUG" --commit-dirty=true
+          echo "url=https://${SLUG}.${CF_PROJECT}.pages.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Отчёт в issue
+        env:
+          DIR: ${{ steps.gen.outputs.dir }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          COST=$(node -p "require('./$DIR/meta.json').cost_usd_estimate")
+          SECS=$(node -p "require('./$DIR/meta.json').seconds")
+          NOTES=$(node -p "require('./$DIR/meta.json').agent_notes")
+          {
+            echo "🌱 **Сайт вырос** — \`$DIR\`"
+            [ -n "$URL" ] && echo "" && echo "Превью: $URL"
+            echo ""
+            echo "⏱ ${SECS}s · 💸 ~\$${COST}"
+            echo ""
+            echo "<details><summary>Заметки агента</summary>"
+            echo ""
+            echo "$NOTES"
+            echo "</details>"
+          } > comment.md
+          gh issue comment "$ISSUE_NUMBER" --body-file comment.md
+          gh issue edit "$ISSUE_NUMBER" --add-label "grown" || true
+
+      - name: Telegram
+        if: env.HAS_TG == 'true'
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SLUG: ${{ steps.gen.outputs.slug }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          curl -sS "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode chat_id="$TG_CHAT" \
+            --data-urlencode text="🌱 farmsite_: вырос ${SLUG}
+          ${URL:-(без деплоя)}
+          Issue #${ISSUE_NUMBER}" > /dev/null
+
+      - name: Сообщить об ошибке
+        if: failure()
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "🥀 Сайт не вырос — лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

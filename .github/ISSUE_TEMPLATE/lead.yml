@@ -1,0 +1,33 @@
+name: 🌱 Новый лид (вырастить сайт)
+description: Заполните — агент исследует бизнес и вырастит сайт‑превью
+title: "lead: "
+labels: ["lead"]
+body:
+  - type: input
+    id: business
+    attributes: { label: Бизнес, placeholder: "Restaurante O Farol" }
+    validations: { required: true }
+  - type: dropdown
+    id: niche
+    attributes:
+      label: Ниша
+      options: [Ресторан / кафе, Клиника / здоровье, Салон красоты, Мебель / интерьер, Ремонт / строительство, Магазин, Другое]
+    validations: { required: true }
+  - type: input
+    id: city
+    attributes: { label: Город, placeholder: "Lagos, Algarve" }
+  - type: input
+    id: phone
+    attributes: { label: Телефон / WhatsApp, placeholder: "+351 9xx xxx xxx" }
+  - type: input
+    id: email
+    attributes: { label: Email }
+  - type: textarea
+    id: links
+    attributes: { label: Ссылки (сайт, Instagram, Google Maps), description: По одной в строке }
+  - type: dropdown
+    id: language
+    attributes: { label: Язык сайта, options: [Português, English, Русский, Українська] }
+  - type: textarea
+    id: notes
+    attributes: { label: Пожелания клиента }

@@ -1,0 +1,89 @@
+/* FarmSite design tokens — v1.0
+   Подключение: <link rel="stylesheet" href="tokens.css"> + шрифты (см. BRAND.md).
+   Тёмная тема — основная. Светлая включается через [data-theme="light"]. */
+
+:root {
+  /* — Палитра «поле» — */
+  --fs-soil:        #0E0F0D; /* почва: основной фон */
+  --fs-soil-2:      #171915; /* приподнятые поверхности */
+  --fs-soil-3:      #20231E; /* карточки / инпуты */
+  --fs-dormant:     #2C2F2A; /* «спящие» точки, рамки */
+  --fs-chaff:       #F4F4EF; /* основной текст на тёмном */
+  --fs-chaff-dim:   #9A9C94; /* вторичный текст (контраст 6.9:1) */
+  --fs-sprout:      #3DFF8F; /* росток: главный акцент */
+  --fs-sprout-ink:  #0B7A3E; /* росток для текста на светлом (4.9:1) */
+  --fs-paper:       #F5F3EE; /* фон светлой темы */
+  --fs-dormant-l:   #D9D6CF; /* «спящие» точки на светлом */
+  --fs-ember:       #FF5A36; /* уголь: акцент светлой темы, только крупно/графика */
+  --fs-ember-ink:   #C0391B; /* уголь для текста */
+
+  /* — Семантика (тёмная тема по умолчанию) — */
+  --bg:        var(--fs-soil);
+  --surface:   var(--fs-soil-2);
+  --surface-2: var(--fs-soil-3);
+  --line:      rgba(244, 244, 239, .10);
+  --line-strong: rgba(244, 244, 239, .22);
+  --text:      var(--fs-chaff);
+  --text-dim:  var(--fs-chaff-dim);
+  --accent:    var(--fs-sprout);
+  --accent-text: var(--fs-sprout);
+  --on-accent: var(--fs-soil);
+  --dot-off:   var(--fs-dormant);
+
+  /* — Типографика — */
+  --font-display: "Unbounded", "Manrope", system-ui, sans-serif;
+  --font-body:    "Manrope", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   19px;
+  --text-xl:   24px;
+  --text-2xl:  clamp(28px, 3.2vw, 36px);
+  --text-3xl:  clamp(36px, 5vw, 56px);
+  --text-hero: clamp(44px, 8vw, 104px);
+  --leading-tight: 1.02;
+  --leading-body: 1.6;
+  --tracking-display: -0.03em;
+  --tracking-label: 0.14em;
+
+  /* — Сетка «грядки»: всё кратно 4 — */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  --space-24: 96px; --space-32: 128px;
+  --container: 1240px;
+  --gutter: clamp(16px, 4vw, 48px);
+
+  /* — Формы — */
+  --radius-sm: 10px;
+  --radius:    18px;
+  --radius-lg: 26px;   /* = радиус плитки знака */
+  --radius-pill: 999px;
+
+  /* — Движение — */
+  --ease-grow: cubic-bezier(.22, 1, .36, 1);   /* всход: быстрый старт, мягкая посадка */
+  --ease-snap: cubic-bezier(.34, 1.56, .64, 1); /* щелчок точки */
+  --dur-fast: 160ms;
+  --dur:      320ms;
+  --dur-slow: 640ms;
+  --stagger:  60ms;   /* задержка между точками/элементами */
+}
+
+[data-theme="light"] {
+  --bg:        var(--fs-paper);
+  --surface:   #FFFFFF;
+  --surface-2: #ECE9E2;
+  --line:      rgba(14, 15, 13, .10);
+  --line-strong: rgba(14, 15, 13, .22);
+  --text:      var(--fs-soil);
+  --text-dim:  #5E6058;
+  --accent:    var(--fs-ember);
+  --accent-text: var(--fs-ember-ink);
+  --on-accent: var(--fs-soil);
+  --dot-off:   var(--fs-dormant-l);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; --stagger: 0ms; }
+}
