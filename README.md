@@ -31,7 +31,7 @@
    - `ANTHROPIC_API_KEY` *(обязательно)*
    - `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` *(превью‑хостинг)*
    - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` *(уведомления)*
-2. **Issues → Labels → New label** `lead`.
+2. Метки `lead` и `grown` уже созданы.
 3. **Issues → New issue → 🌱 Новый лид** → заполнить → Submit.
 4. Через 5–15 минут: сайт в `sites/<дата>-<клиент>/`, превью `https://<дата>-<клиент>.farmsite-previews.pages.dev`, комментарий в issue со стоимостью и временем.
 

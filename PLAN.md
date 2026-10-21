@@ -20,7 +20,7 @@
   - `ANTHROPIC_API_KEY` — обязательно
   - `CLOUDFLARE_API_TOKEN` (права *Cloudflare Pages: Edit*) + `CLOUDFLARE_ACCOUNT_ID` — для превью
   - `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` — уведомления
-- [ ] Создать метку `lead` (Issues → Labels)
+- [x] Метки `lead` и `grown` созданы
 - [ ] Тест: New issue → «🌱 Новый лид» → заполнить → через ~5–15 мин в issue комментарий с превью
 - [ ] Сравнить 3 тестовых сайта, подкрутить `prompts/site-generator.md`
 - [ ] Переменная `FARMSITE_MODEL` — тест моделей (sonnet / opus) по цене и качеству
